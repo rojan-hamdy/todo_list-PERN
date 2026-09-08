@@ -2,21 +2,23 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './App.css';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider, useToast } from './context/ToastContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header';
 import TaskStats from './components/TaskStats';
 import InputTodo from './components/inputTodo';
 import SearchFilter from './components/SearchFilter';
 import ListTodo from './components/ListTodo';
+import Auth from './components/Auth';
 
 const MainApp = () => {
+  const { isAuthenticated } = useAuth();
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'active', 'completed'
-  const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', 'alpha'
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
   const { showError, showInfo } = useToast();
 
-  // Load local completed states map from localStorage
   const [completedMap, setCompletedMap] = useState(() => {
     try {
       const saved = localStorage.getItem('pern_todo_completed_map');
@@ -26,13 +28,12 @@ const MainApp = () => {
     }
   });
 
-  // Save completed states map to localStorage
   useEffect(() => {
     localStorage.setItem('pern_todo_completed_map', JSON.stringify(completedMap));
   }, [completedMap]);
 
-  // Fetch todos from server API
   const getTodos = useCallback(async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     try {
       const response = await fetch("http://localhost:5000/todos");
@@ -47,18 +48,16 @@ const MainApp = () => {
     } finally {
       setLoading(false);
     }
-  }, [showError]);
+  }, [isAuthenticated, showError]);
 
   useEffect(() => {
     getTodos();
   }, [getTodos]);
 
-  // Add todo handler (optimistic state update)
   const handleAddTodo = (newTodo) => {
     setTodos((prev) => [newTodo, ...prev]);
   };
 
-  // Delete todo handler
   const handleDeleteTodo = (id) => {
     setTodos((prev) => prev.filter((t) => t.todo_id !== id));
     setCompletedMap((prev) => {
@@ -68,14 +67,12 @@ const MainApp = () => {
     });
   };
 
-  // Update todo description handler
   const handleUpdateTodo = (id, newDescription) => {
     setTodos((prev) =>
       prev.map((t) => (t.todo_id === id ? { ...t, description: newDescription } : t))
     );
   };
 
-  // Toggle todo completion handler
   const handleToggleComplete = (id) => {
     setCompletedMap((prev) => {
       const isCurrentlyCompleted = Boolean(prev[id]);
@@ -89,7 +86,6 @@ const MainApp = () => {
     });
   };
 
-  // Map todos with completion status from completedMap (or server is_completed property if present)
   const enrichedTodos = useMemo(() => {
     return todos.map((todo) => ({
       ...todo,
@@ -97,7 +93,6 @@ const MainApp = () => {
     }));
   }, [todos, completedMap]);
 
-  // Calculate task statistics
   const stats = useMemo(() => {
     const total = enrichedTodos.length;
     const completed = enrichedTodos.filter((t) => t.is_completed).length;
@@ -105,24 +100,20 @@ const MainApp = () => {
     return { total, active, completed };
   }, [enrichedTodos]);
 
-  // Filter and sort todos
   const processedTodos = useMemo(() => {
     let result = [...enrichedTodos];
 
-    // Filter by search keyword
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       result = result.filter((t) => t.description.toLowerCase().includes(term));
     }
 
-    // Filter by status (All, Active, Completed)
     if (filterStatus === 'active') {
       result = result.filter((t) => !t.is_completed);
     } else if (filterStatus === 'completed') {
       result = result.filter((t) => t.is_completed);
     }
 
-    // Sort todos
     if (sortBy === 'newest') {
       result.sort((a, b) => b.todo_id - a.todo_id);
     } else if (sortBy === 'oldest') {
@@ -133,6 +124,11 @@ const MainApp = () => {
 
     return result;
   }, [enrichedTodos, searchTerm, filterStatus, sortBy]);
+
+  // If not authenticated, render Login / Registration view
+  if (!isAuthenticated) {
+    return <Auth />;
+  }
 
   return (
     <div className="app-layout">
@@ -179,7 +175,9 @@ function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <MainApp />
+        <AuthProvider>
+          <MainApp />
+        </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
   );
