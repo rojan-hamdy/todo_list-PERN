@@ -1,2 +1,2 @@
 # todo_list-PERN
-a small project based on PERN stack 
+A small project based on PERN stack. 
