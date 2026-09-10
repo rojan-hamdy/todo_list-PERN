@@ -1,5 +1,13 @@
 CREATE DATABASE todo_list;
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  email VARCHAR(50) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE todo (
   todo_id SERIAL PRIMARY KEY,
-  description VARCHAR(255) NOT NULL
+  description VARCHAR(255) NOT NULL,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
 );

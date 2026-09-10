@@ -9,7 +9,7 @@ import InputTodo from './components/inputTodo';
 import SearchFilter from './components/SearchFilter';
 import ListTodo from './components/ListTodo';
 import Auth from './components/Auth';
-
+import { API_URL } from './api.js';
 const MainApp = () => {
   const { isAuthenticated } = useAuth();
   const [todos, setTodos] = useState([]);
@@ -36,7 +36,9 @@ const MainApp = () => {
     if (!isAuthenticated) return;
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/todos");
+      const response = await fetch(`${API_URL}/todos`, {
+        credentials: "include"
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch todos");
       }

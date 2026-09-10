@@ -17,8 +17,9 @@ const ListTodo = ({
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/todos/${id}`, {
-        method: "DELETE"
+      const response = await fetch(`http://localhost:5000/api/todos/${id}`, {
+        method: "DELETE",
+        credentials: "include"
       });
 
       if (!response.ok) {

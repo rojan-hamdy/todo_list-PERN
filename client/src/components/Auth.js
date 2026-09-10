@@ -40,10 +40,6 @@ const Auth = () => {
     }
   };
 
-  const handleDemoLogin = () => {
-    login('demo.user@example.com', 'demopassword123');
-  };
-
   return (
     <div className="auth-wrapper">
       <div className="auth-header-top">
@@ -170,14 +166,6 @@ const Auth = () => {
             {isLogin ? 'Sign In' : 'Create Account'}
           </button>
         </form>
-
-        <div className="auth-divider">
-          <span>OR</span>
-        </div>
-
-        <button type="button" className="demo-login-btn" onClick={handleDemoLogin}>
-          ⚡ Instant Demo Access
-        </button>
 
         <p className="auth-footer-text">
           {isLogin ? "Don't have an account? " : "Already have an account? "}

@@ -17,10 +17,11 @@ const EditTodo = ({ todo, onUpdateTodo }) => {
     setIsSubmitting(true);
     try {
       const body = { description: trimmed };
-      const response = await fetch(`http://localhost:5000/todos/${todo.todo_id}`, {
+      const response = await fetch(`http://localhost:5000/api/todos/${todo.todo_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        credentials: "include"
       });
 
       if (!response.ok) {
